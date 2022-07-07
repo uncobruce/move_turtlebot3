@@ -60,27 +60,21 @@ class Move(object):
     It mainly declare and subscribe to ROS topics in an elegant way.
     """
 
-    def __init__(self, robot_name, run_type):
+    def __init__(self):
 
-        self.robot_name = robot_name
-        self.run_type = run_type
         # Declare ROS subscribers and publishers
-        self.node_name = "square_move"+ self.robot_name
-        
+        self.node_name = "square_move1"
 
-        if self.run_type == 'simulation':
-            ## for simulation
-            self.odom_sub_name = "/odom"
-            self.vel_pub_name = "/cmd_vel"
-            self.scan_sub_name = "/scan"
-            self.img_sub_name = "/camera/rgb/image_raw"
-            self.br = CvBridge()
-        elif self.run_type == 'real':
-            ## for real robot        
-            self.odom_sub_name = "/"+ self.robot_name +"/odom"
-            self.vel_pub_name = "/"+ self.robot_name +"/cmd_vel"
-            self.scan_sub_name = "/"+ self.robot_name +"/scan"
-            self.img_sub_name = "/"+ self.robot_name +"/raspicam_node/image/compressed"
+        ## for simulation
+        # self.odom_sub_name = "/odom"
+        # self.vel_pub_name = "/cmd_vel"
+        # self.scan_sub_name = "/scan"
+        # self.img_sub_name = "/camera/rgb/image_raw"
+        ## for real robot        
+        self.odom_sub_name = "/tb3_1/odom"
+        self.vel_pub_name = "/tb3_1/cmd_vel"
+        self.scan_sub_name = "/tb3_1/scan"
+        #self.img_sub_name = "/tb3_1/raspicam_node/image/compressed"
 
         self.vel_pub = None
         self.odometry_sub = None
@@ -88,7 +82,8 @@ class Move(object):
         self.total_distance = 0
         self.previous_x = 0
         self.previous_y = 0
-        
+        self.br = CvBridge()
+
         # ROS params
         self.pub_rate = 0.1
         self.queue_size = 2
@@ -111,13 +106,13 @@ class Move(object):
         self.vel_pub = rospy.Publisher(self.vel_pub_name, Twist, queue_size=self.queue_size)
         self.scan_sub = rospy.Subscriber(self.scan_sub_name, LaserScan, callback=self.__scan_ros_sub, queue_size=self.queue_size)
         
-        if self.run_type == 'simulation':
-            ## for simulation
-            self.img_sub = rospy.Subscriber(self.img_sub_name, Image, callback=self.__img_ros_sub, queue_size=self.queue_size)
-        elif self.run_type == 'real':
-            ## for real robot
-            self.img_sub = rospy.Subscriber(self.img_sub_name, CompressedImage, callback=self.__img_ros_sub, queue_size=self.queue_size)
+        ## for simulation
+        #self.img_sub = rospy.Subscriber(self.img_sub_name, Image, callback=self.__img_ros_sub, queue_size=self.queue_size)
+        ## for real robot
+        #self.img_sub = rospy.Subscriber(self.img_sub_name, CompressedImage, callback=self.__img_ros_sub, queue_size=self.queue_size)
 
+
+        #rospy.spin()
 
     def stop_robot(self):
 
@@ -130,7 +125,7 @@ class Move(object):
             self.vel_ros_pub(Twist())
             time.sleep(self.pub_rate)
 
-        sys.exit("\n The Robot has stopped")
+        #sys.exit("The process has been interrupted by the user!")
 
 
     def __odom_ros_sub(self, msg):
@@ -174,26 +169,25 @@ class Move(object):
 
         pass
         
-        # if self.run_type == 'simulation':
-        #     ## for simulation (show camera img)
-        #     self.img_ros_sub = self.br.imgmsg_to_cv2(msg)
-        #     (rows,cols,channels) = self.img_ros_sub.shape
-        #     print (self.img_ros_sub)
-        #     print (self.img_ros_sub.shape)
-        #     if cols > 60 and rows > 60 :
-        #         cv2.circle(self.img_ros_sub, (50,50), 10, 255)   
-        #     cv2.imshow("Image window", self.img_ros_sub)
-        #     cv2.waitKey(3)
+        ## for simulation (show camera img)
+        # self.img_ros_sub = self.br.imgmsg_to_cv2(msg)
+        # (rows,cols,channels) = self.img_ros_sub.shape
+        # print (self.img_ros_sub)
+        # print (self.img_ros_sub.shape)
+        # if cols > 60 and rows > 60 :
+        #     cv2.circle(self.img_ros_sub, (50,50), 10, 255)
+   
+        # cv2.imshow("Image window", self.img_ros_sub)
+        # cv2.waitKey(3)
 
-        # elif self.run_type == 'real':
-        #     ## for real robot (show camera img)
-        #     np_arr = np.fromstring(msg.data, np.uint8)
-        #     image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        #     cv2.imshow('image',image)
-        #     ## 11 millisecond is approx fps for pi camera (90 fps)
-        #     cv2.waitKey(11)
+        ## for real robot (show camera img)
+            # np_arr = np.fromstring(msg.data, np.uint8)
+            # image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            # cv2.imshow('image',image)
+            # ## 11 millisecond is approx fps for pi camera (90 fps)
+            # cv2.waitKey(11)
         
-            #cv2.imwrite("result"+str(time.time())+".jpg", image)
+        #cv2.imwrite("result"+str(time.time())+".jpg", image)
         
 
 class MoveOdom(Move):
@@ -208,9 +202,9 @@ class MoveOdom(Move):
             $ python move_turt
     """
 
-    def __init__(self, robot_name, run_type):
+    def __init__(self):
 
-        super(MoveOdom, self).__init__(robot_name, run_type)
+        super(MoveOdom, self).__init__()
 
         self.pub_rate = 0.1
 
@@ -261,7 +255,7 @@ class MoveOdom(Move):
             msg = Twist()
             if direction =='ccw':
                 msg.angular.z = ang_speed
-            elif direction =='cw':
+            else:
                 msg.angular.z = -ang_speed
             msg.linear.x = 0
             self.vel_ros_pub(msg)
@@ -318,14 +312,13 @@ class MoveOdom(Move):
             ang_speed = msg.linear.x / radius
             
             ## angular.z unit is rad/s
-            if direction =='ccw':
-                msg.angular.z = ang_speed
-            elif direction =='cw':
-                msg.angular.z = -ang_speed 
+            msg.angular.z = ang_speed  
+            if direction =='cw':
+                msg.angular.z = -ang_speed
             ## radius = msg.linear.x/msg.angular.z
-            self.vel_ros_pub(msg)
+            robotturt.vel_ros_pub(msg)
             
-            time.sleep(self.pub_rate)
+            time.sleep(robotturt.pub_rate)
 
         self.stop_robot()
         self.total_distance = 0
@@ -333,10 +326,7 @@ class MoveOdom(Move):
 
 if __name__ == '__main__':
 
-    ## real or simulation
-    robotturt = MoveOdom('tb3_0', "simulation")
-    #robotturt = MoveOdom('tb3_0', "real")
-
+    robotturt = MoveOdom()
     robotturt.start_ros()
     
     ## start robot path at specific time
@@ -344,10 +334,10 @@ if __name__ == '__main__':
 
     #robotturt.debug_move()
     
-    #robotturt.move_square(0.5, 'cw')
+    robotturt.move_square(0.5, 'cw')
 
     ## radius <= 0.375
-    robotturt.move_circle(0.375, 'cw')
+    #robotturt.move_circle(0.375, 'cw')
 
 
 
