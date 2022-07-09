@@ -70,10 +70,10 @@ class Move(object):
 
         if self.run_type == 'simulation':
             ## for simulation
-            self.odom_sub_name = "/odom"
-            self.vel_pub_name = "/cmd_vel"
-            self.scan_sub_name = "/scan"
-            self.img_sub_name = "/camera/rgb/image_raw"
+            self.odom_sub_name = "/"+ self.robot_name +"/odom"
+            self.vel_pub_name = "/"+ self.robot_name +"/cmd_vel"
+            self.scan_sub_name = "/"+ self.robot_name +"/scan"
+            self.img_sub_name = "/"+ self.robot_name +"/camera/rgb/image_raw"
             self.br = CvBridge()
         elif self.run_type == 'real':
             ## for real robot        
@@ -199,7 +199,8 @@ class Move(object):
 class MoveOdom(Move):
     """
     This class implements a semi closed-loop square trajectory based on relative position control,
-    where only odometry is used. HOWTO:
+    where only odometry is used. 
+    HOWTO:
      - Start the roscore (on the computer or the robot, depending on your configuration)
             $ roscore
      - Run bringup on the turtlebot:
@@ -254,14 +255,14 @@ class MoveOdom(Move):
         while (abs(self.get_z_rotation(self.odom_pose.orientation) - a_init)) < a and not rospy.is_shutdown():    
             #print ('------', self.get_z_rotation(self.odom_pose.orientation), a_init)
 
-            sys.stdout.write("\r [TURN] The robot has turned of {:.2f}".format(abs(self.get_z_rotation(self.odom_pose.orientation) - \
+            sys.stdout.write("\r [TURN] The robot has turned "+ direction +" of {:.2f}".format(abs(self.get_z_rotation(self.odom_pose.orientation) - \
                 a_init)) + "rad over {:.2f}".format(a) + "rad")
             sys.stdout.flush()
 
             msg = Twist()
-            if direction =='ccw':
+            if direction =='CCW':
                 msg.angular.z = ang_speed
-            elif direction =='cw':
+            elif direction =='CW':
                 msg.angular.z = -ang_speed
             msg.linear.x = 0
             self.vel_ros_pub(msg)
@@ -310,7 +311,7 @@ class MoveOdom(Move):
 
         while self.total_distance <= distance and not rospy.is_shutdown():
 
-            sys.stdout.write("\r [CIRCLE] The robot has moved of {:.2f}".format(self.total_distance) +  "m over {:.2f}".format(distance) + "m for circle with radius of " + str(radius) + "m")
+            sys.stdout.write("\r [CIRCLE] The robot has moved of {:.2f}".format(self.total_distance) +  "m over {:.2f}".format(distance) + "m for "+ direction +" circle with radius of " + str(radius) + "m")
             sys.stdout.flush()
 
             msg = Twist()
@@ -318,9 +319,9 @@ class MoveOdom(Move):
             ang_speed = msg.linear.x / radius
             
             ## angular.z unit is rad/s
-            if direction =='ccw':
+            if direction =='CCW':
                 msg.angular.z = ang_speed
-            elif direction =='cw':
+            elif direction =='CW':
                 msg.angular.z = -ang_speed 
             ## radius = msg.linear.x/msg.angular.z
             self.vel_ros_pub(msg)
@@ -332,10 +333,17 @@ class MoveOdom(Move):
 
 
 if __name__ == '__main__':
+    
+    name = 'tb3_0'
+    name1 = 'tb3_1'
+    name2 = 'tb3_2'
+    name3 = 'tb3_3'
+    name4 = 'tb3_4'
+    name5 = 'tb3_5'
 
     ## real or simulation
-    robotturt = MoveOdom('tb3_0', "simulation")
-    #robotturt = MoveOdom('tb3_0', "real")
+    robotturt = MoveOdom(name1, "simulation")
+    #robotturt = MoveOdom(name, "real")
 
     robotturt.start_ros()
     
@@ -344,10 +352,10 @@ if __name__ == '__main__':
 
     #robotturt.debug_move()
     
-    #robotturt.move_square(0.5, 'cw')
+    robotturt.move_square(0.5, 'CCW')
 
     ## radius <= 0.375
-    robotturt.move_circle(0.375, 'cw')
+    #robotturt.move_circle(0.375, 'CW')
 
 
 
